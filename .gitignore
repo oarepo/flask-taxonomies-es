@@ -16,3 +16,7 @@ docs/build/
 .coverage
 
 tests/__pycache__/
+
+build/
+
+dist/
