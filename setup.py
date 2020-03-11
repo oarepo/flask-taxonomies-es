@@ -6,6 +6,9 @@ from setuptools import setup
 
 readme = open('README.rst').read()
 
+DATABASE = "postgresql"
+OAREPO_VERSION = os.environ.get('OAREPO_VERSION', '3.1.1')
+
 install_requires = [
     'flask-taxonomies',
     'elasticsearch>=7.0.0,<8.0.0',
@@ -20,7 +23,21 @@ tests_require = [
 extras_require = {
     'docs': [
         'sphinx'
-    ]
+    ],
+    'postgresql': [
+        'flask-taxonomies[postgresql]',
+    ],
+    'sqlite': [
+        'flask-taxonomies[sqlite]',
+    ],
+    'tests': [
+        *tests_require,
+        'oarepo[tests]~={version}'.format(
+            version=OAREPO_VERSION)],
+    'tests-es7': [
+        *tests_require,
+        'oarepo[tests-es7]~={version}'.format(
+            version=OAREPO_VERSION)],
 }
 
 setup_requires = [
