@@ -17,7 +17,8 @@ install_requires = [
 
 tests_require = [
     'pytest>=4.6.3',
-    'pytest-cov'
+    'pytest-cov',
+    'pytest-flask<1.0.0'
 ]
 
 extras_require = {
