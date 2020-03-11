@@ -23,6 +23,6 @@
 # waive the privileges and immunities granted to it by virtue of its status
 # as an Intergovernmental Organization or submit itself to any jurisdiction.
 
-isort -rc -c -df . && \
-check-manifest --ignore ".travis-*" && \
+#isort -rc -c -df . && \
+#check-manifest --ignore ".travis-*" && \
 python setup.py test
