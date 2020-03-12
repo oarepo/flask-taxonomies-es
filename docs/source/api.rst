@@ -7,5 +7,5 @@ The API is accessible through a proxy object that points to the
 
     current_flask_taxonomies_es.<method> (parameters)
 
-.. autoclass:: api.TaxonomyESAPI
+.. autoclass:: flask_taxonomies_es.api.TaxonomyESAPI
     :members:
