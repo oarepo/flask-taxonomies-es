@@ -14,7 +14,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.abspath(
-    '/home/semtex/Projekty/nusl/flask-taxonomies-es/flask_taxonomies_es'))
+    '/../../flask-taxonomies-es/flask_taxonomies_es'))
 
 # -- Project information -----------------------------------------------------
 

@@ -6,7 +6,7 @@ The package is an extension of Flask-Taxonomies and is directly linked to Inveni
 server set up in Invenio. The whole logic is based on Blinker signals, so the package should be functional right after
 installation.
 
-Access to the API is established through a Proxy object. All methods are called via: current_taxonomies_es.
+Access to the API is established through a Proxy object. All methods are called via: **current_taxonomies_es**.
 
 The API contains all CRUD methods. The most important methods for users are to obtain taxonomy from Elasticsearch.
 Here we set up two methods get and get_ref.
