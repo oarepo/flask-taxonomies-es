@@ -11,3 +11,5 @@ flask-taxonomies-es
 .. image:: https://readthedocs.org/projects/flask-taxonomies-es/badge/?version=latest
         :target: https://flask-taxonomies-es.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
+        
+https://flask-taxonomies-es.readthedocs.io/
