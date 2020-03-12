@@ -11,7 +11,7 @@ from flask_taxonomies_es.utils import _get_taxonomy_slug_from_url
 class TaxonomyESAPI:
     """
     Constructor takes Flask app as parameter. However, it is not necessary create class instance.
-    Class instance should be called wit proxy method: current_flask_taxonomies_es.
+    Class instance should be called with proxy method: current_flask_taxonomies_es.
     """
 
     def __init__(self, app):

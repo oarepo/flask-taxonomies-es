@@ -23,7 +23,10 @@ tests_require = [
 
 extras_require = {
     'docs': [
-        'sphinx'
+        'sphinx',
+        'webargs<6.0.0',
+        'oarepo[tests]~={version}'.format(
+            version=OAREPO_VERSION)
     ],
     'postgresql': [
         'flask-taxonomies[postgresql]',

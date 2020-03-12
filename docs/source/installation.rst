@@ -22,6 +22,3 @@ As another package, the most convenient way is to install with pip from PyPi.
 .. code-block:: console
 
     pip install flask-taxonomies-es
-
-subsubtitle
-************
