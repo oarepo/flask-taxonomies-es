@@ -1,6 +1,7 @@
 import time
 
-from flask_taxonomies.models import after_taxonomy_term_created, after_taxonomy_term_deleted
+from flask_taxonomies.models import after_taxonomy_term_created, after_taxonomy_term_deleted, \
+    before_taxonomy_jsonresolve
 
 from flask_taxonomies_es.proxies import current_flask_taxonomies_es
 from flask_taxonomies_es.signals import update_taxonomy_term, delete_taxonomy_term
@@ -31,6 +32,38 @@ def test_after_taxonomy_term_deleted(app, test_db, sample_term, sample_term_dict
     term_dict = current_flask_taxonomies_es.get(taxonomy_code, slug)
     time.sleep(1)
     assert term_dict is None
+
+
+def test_before_taxonomy_jsonresolve(app, test_db, sample_term, sample_term_dict):
+    taxonomy_code = sample_term.taxonomy.slug
+    slug = sample_term.slug
+    current_flask_taxonomies_es.set(sample_term)
+    time.sleep(1)
+    taxonomy_dict = current_flask_taxonomies_es.get(taxonomy_code, slug)
+    del taxonomy_dict['date_of_serialization']
+    assert taxonomy_dict == sample_term_dict
+    resp = before_taxonomy_jsonresolve.send(None, code=taxonomy_code, slug=slug)
+    assert resp[0][1] == {
+        'address': 'Technická 5, 166 28 Praha 6',
+        'id': 2,
+        'level': 1,
+        'lib_url': '',
+        'links': {
+            'parent': 'http://localhost/taxonomies/root/',
+            'parent_tree': 'http://localhost/taxonomies/root/?drilldown=True',
+            'self': 'http://localhost/taxonomies/root/1/',
+            'tree': 'http://localhost/taxonomies/root/1/?drilldown=True'
+        },
+        'path': '/1',
+        'slug': '1',
+        'title': [
+            {
+                'lang': 'cze',
+                'value': 'Vysoká škola chemicko-technologická v Praze'
+            }
+        ],
+        'url': 'http://www.vscht.cz/'
+    }
 
 
 def test_after_taxonomy_term_moved():

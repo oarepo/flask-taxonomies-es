@@ -1,10 +1,11 @@
 # VIZ: https://github.com/oarepo/flask-taxonomies/blob/master/flask_taxonomies/ext.py
 from flask_taxonomies.models import after_taxonomy_term_moved, after_taxonomy_term_updated, \
-    after_taxonomy_term_deleted, after_taxonomy_term_created
+    after_taxonomy_term_deleted, after_taxonomy_term_created, before_taxonomy_jsonresolve
 
 from flask_taxonomies_es import config
 from flask_taxonomies_es.api import TaxonomyESAPI
-from flask_taxonomies_es.signals import update_taxonomy_term, delete_taxonomy_term, move_term
+from flask_taxonomies_es.signals import update_taxonomy_term, delete_taxonomy_term, move_term, \
+    json_resolve
 
 
 class FlaskTaxonomiesES(object):
@@ -24,6 +25,7 @@ class FlaskTaxonomiesES(object):
         after_taxonomy_term_updated.connect(update_taxonomy_term)
         after_taxonomy_term_deleted.connect(delete_taxonomy_term)
         after_taxonomy_term_moved.connect(move_term)
+        before_taxonomy_jsonresolve.connect(json_resolve)
 
         app.extensions['flask-taxonomies-es'] = TaxonomyESAPI(app)
 
