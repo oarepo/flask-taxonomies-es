@@ -1,9 +1,10 @@
-import time
+import datetime
+from datetime import datetime
+from pprint import pprint
 
-import pytest
+import time
 from invenio_search import current_search_client
 
-from flask_taxonomies_es.api import TaxonomyESAPI
 from flask_taxonomies_es.proxies import current_flask_taxonomies_es
 
 
@@ -160,10 +161,41 @@ def test_set_get_child_term(app, test_db, root_taxonomy, child_term):
     assert result["path"] == '/1/3'
 
 
-def test_synchronize_es(app, test_db, root_taxonomy, sample_term, sample_term_2, child_term):
+def test_synchronize_es(app, db, test_db, sample_term, sample_term_2, child_term):
     current_flask_taxonomies_es._synchronize_es()
+    time.sleep(1)
+    terms = current_flask_taxonomies_es.list("root")
+    time.sleep(1)
+    assert len(terms) == 3
 
-# def test_remove_old_es_term()
+
+def test_synchronize_es_timestamp(app, db, test_db, sample_term, sample_term_2, child_term):
+    timestamp = datetime.utcnow()
+    current_flask_taxonomies_es._synchronize_es(timestamp=timestamp)
+    time.sleep(1)
+    terms = current_flask_taxonomies_es.list("root")
+    time.sleep(1)
+    assert len(terms) == 3
+    for term in terms:
+        assert term['date_of_serialization'] == str(timestamp)
+
+
+def test_remove_old_es_term(app, db, test_db, sample_term, sample_term_2, child_term):
+    timestamp = datetime.utcnow()
+    current_flask_taxonomies_es._synchronize_es(timestamp=timestamp)
+    time.sleep(1)
+    terms = current_flask_taxonomies_es.list("root")
+    time.sleep(1)
+    assert len(terms) == 3
+    current_flask_taxonomies_es._remove_old_es_term(timestamp=timestamp)
+    terms = current_flask_taxonomies_es.list("root")
+    time.sleep(1)
+    assert len(terms) == 3
+    timestamp = datetime.utcnow()
+    current_flask_taxonomies_es._remove_old_es_term(timestamp=timestamp)
+    terms = current_flask_taxonomies_es.list("root")
+    time.sleep(1)
+    assert len(terms) == 0
 
 # def test_reindex(app, test_db, root_taxonomy, sample_term, child_term):
 #     current_flask_taxonomies_es.set(sample_term)
