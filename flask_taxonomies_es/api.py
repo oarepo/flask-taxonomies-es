@@ -28,7 +28,7 @@ class TaxonomyESAPI:
                     body={}
                 )
 
-    def set(self, taxonomy_term: TaxonomyTerm, timestamp=datetime.utcnow()) -> None:
+    def set(self, taxonomy_term: TaxonomyTerm, timestamp=None) -> None:
         """
         Save serialized taxonomy into Elasticsearch. It create new or update old taxonomy record.
 
@@ -138,13 +138,10 @@ class TaxonomyESAPI:
         self._synchronize_es(timestamp=timestamp)
         self._remove_old_es_term(timestamp)
 
-    def _synchronize_es(self, timestamp=datetime.utcnow()) -> None:
+    def _synchronize_es(self, timestamp=None) -> None:
         with self.app.app_context():
             for node in TaxonomyTerm.query.all():
-                if timestamp:
-                    self.set(node, timestamp=timestamp)
-                else:
-                    self.set(node)
+                self.set(node, timestamp=timestamp)
                 print(
                     f'Taxonomy term with slug: \"{node.slug}\" from taxonomy: \"'
                     f'{node.taxonomy.slug}\" has been updated')
@@ -160,5 +157,5 @@ class TaxonomyESAPI:
                 if date_of_serialization < timestamp:
                     self.remove(taxonomy_code=node["taxonomy"], slug=node["slug"])
                     print(
-                        f'Taxonomy term with slug: \"{node.slug}\" from \"{node.taxonomy.slug}\" '
+                        f'Taxonomy term with slug: \"{node["slug"]}\" from \"{node["taxonomy"]}\" '
                         f'have been removed')
