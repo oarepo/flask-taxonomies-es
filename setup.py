@@ -64,54 +64,12 @@ setup(
     zip_safe=False,
     packages=['flask_taxonomies_es'],
     entry_points={
-        # TODO: zrevidovat EP
-        # 'invenio_db.models': [
-        #     'flask_taxonomies = flask_taxonomies.models',
-        # ],
-        # 'invenio_db.alembic': [
-        #     'flask_taxonomies = flask_taxonomies:alembic',
-        # ],
-        # 'invenio_base.api_blueprints': [
-        #     'flask_taxonomies = flask_taxonomies.views:blueprint',
-        # ],
         'invenio_base.apps': [
             'flask_taxonomies = flask_taxonomies_es.ext:FlaskTaxonomiesES',
         ],
-        # 'invenio_base.api_apps': [
-        #     'flask_taxonomies = flask_taxonomies.ext:FlaskTaxonomies',
-        #     'flask_taxonomies_redis = flask_taxonomies.redis.ext:FlaskTaxonomiesRedis',
-        # ],
-        # 'invenio_jsonschemas.schemas': [
-        #     'flask_taxonomies = flask_taxonomies.jsonschemas'
-        # ],
-        # 'invenio_oarepo_mapping_includes': [
-        #     'flask_taxonomies=flask_taxonomies.included_mappings'
-        # ],
-        # 'invenio_records.jsonresolver': [
-        #     'flask_taxonomies = flask_taxonomies.jsonresolver'
-        # ],
-        # 'invenio_access.actions': [
-        #     # Taxonomy related permissions
-        #     'taxonomy_create_all'
-        #     ' = flask_taxonomies.permissions:taxonomy_create_all',
-        #     'taxonomy_read_all'
-        #     ' = flask_taxonomies.permissions:taxonomy_read_all',
-        #     'taxonomy_update_all'
-        #     ' = flask_taxonomies.permissions:taxonomy_update_all',
-        #     'taxonomy_delete_all'
-        #     ' = flask_taxonomies.permissions:taxonomy_delete_all',
-        #     # Taxonomy term related permissions.
-        #     'taxonomy_term_create_all'
-        #     ' = flask_taxonomies.permissions:taxonomy_term_create_all',
-        #     'taxonomy_term_read_all'
-        #     ' = flask_taxonomies.permissions:taxonomy_term_read_all',
-        #     'taxonomy_term_update_all'
-        #     ' = flask_taxonomies.permissions:taxonomy_term_update_all',
-        #     'taxonomy_term_delete_all'
-        #     ' = flask_taxonomies.permissions:taxonomy_term_delete_all',
-        #     'taxonomy_term_move_all'
-        #     ' = flask_taxonomies.permissions:taxonomy_term_move_all',
-        # ],
+        'invenio_base.api_apps': [
+            'flask_taxonomies = flask_taxonomies_es.ext:FlaskTaxonomiesES',
+        ],
         'flask.commands': [
             'taxonomies_es = flask_taxonomies_es.cli:taxonomies',
         ]

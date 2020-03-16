@@ -4,14 +4,9 @@ from pprint import pprint
 
 import pytest
 import time
-from invenio_search import current_search_client
 
 from flask_taxonomies_es.exceptions import InvalidTermIdentification
 from flask_taxonomies_es.proxies import current_flask_taxonomies_es
-
-
-def test_init(app):
-    assert current_search_client.indices.exists(app.config["TAXONOMY_ELASTICSEARCH_INDEX"])
 
 
 def test_set_get_remove(app, db, root_taxonomy, sample_term):

@@ -11,12 +11,11 @@ def test_version():
 
 
 # TODO: vyřešit problém s current_search_client, aplikace potřebuje znát adresu elastiku
-@pytest.mark.skip(
-    reason="The test needs to resolve the dependency on invenio-search and its "
-           "current_search_client.")
+# @pytest.mark.skip(
+#     reason="The test needs to resolve the dependency on invenio-search and its "
+#            "current_search_client.")
 def test_init():
     """Test extension initialization."""
-    print("start")
     app = Flask('testapp')
     ext = FlaskTaxonomiesES(app)
     assert 'flask-taxonomies-es' in app.extensions
