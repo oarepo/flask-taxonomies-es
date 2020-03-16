@@ -47,7 +47,8 @@ def app():
 
     shutil.rmtree(instance_path)
     with _app.app_context():
-        current_search_client.indices.delete(index=_app.config["TAXONOMY_ELASTICSEARCH_INDEX"])
+        if current_search_client.indices.exists(_app.config["TAXONOMY_ELASTICSEARCH_INDEX"]):
+            current_search_client.indices.delete(index=_app.config["TAXONOMY_ELASTICSEARCH_INDEX"])
 
 
 # @pytest.yield_fixture()
