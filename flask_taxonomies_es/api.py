@@ -1,9 +1,11 @@
+import time
 from datetime import datetime
 
 from elasticsearch_dsl import Search, Q
 from flask_taxonomies.models import TaxonomyTerm
 from invenio_search import current_search_client
 
+from flask_taxonomies_es.exceptions import InvalidTermIdentification
 from flask_taxonomies_es.serializer import get_taxonomy_term
 from flask_taxonomies_es.utils import _get_taxonomy_slug_from_url
 
@@ -28,7 +30,7 @@ class TaxonomyESAPI:
                     body={}
                 )
 
-    def set(self, taxonomy_term: TaxonomyTerm, timestamp=datetime.utcnow()) -> None:
+    def set(self, taxonomy_term: TaxonomyTerm, timestamp=None) -> None:
         """
         Save serialized taxonomy into Elasticsearch. It create new or update old taxonomy record.
 
@@ -71,7 +73,8 @@ class TaxonomyESAPI:
         elif taxonomy_code and slug:
             id_ = self.get(taxonomy_code, slug)["id"]
         else:
-            raise Exception("TaxonomyTerm or Taxonomy Code with slug must be specified")
+            raise InvalidTermIdentification(
+                "TaxonomyTerm or Taxonomy Code with slug must be specified")
         current_search_client.delete(
             index=self.index,
             id=id_
@@ -127,24 +130,23 @@ class TaxonomyESAPI:
         results = list(s.query(query))
         return [result.to_dict() for result in results]
 
-    def reindex(self) -> None:
+    def reindex(self) -> datetime:
         """
         Reindex taxonomy index. Update taxonomy term and remove obsolete taxonomy terms.
 
-        :return: None
-        :rtype: None
+        :return: UTC timestamp
+        :rtype: datetime
         """
         timestamp = datetime.utcnow()
         self._synchronize_es(timestamp=timestamp)
+        time.sleep(1)
         self._remove_old_es_term(timestamp)
+        return timestamp
 
-    def _synchronize_es(self, timestamp=datetime.utcnow()) -> None:
+    def _synchronize_es(self, timestamp=None) -> None:
         with self.app.app_context():
             for node in TaxonomyTerm.query.all():
-                if timestamp:
-                    self.set(node, timestamp=timestamp)
-                else:
-                    self.set(node)
+                self.set(node, timestamp=timestamp)
                 print(
                     f'Taxonomy term with slug: \"{node.slug}\" from taxonomy: \"'
                     f'{node.taxonomy.slug}\" has been updated')
@@ -160,5 +162,5 @@ class TaxonomyESAPI:
                 if date_of_serialization < timestamp:
                     self.remove(taxonomy_code=node["taxonomy"], slug=node["slug"])
                     print(
-                        f'Taxonomy term with slug: \"{node.slug}\" from \"{node.taxonomy.slug}\" '
+                        f'Taxonomy term with slug: \"{node["slug"]}\" from \"{node["taxonomy"]}\" '
                         f'have been removed')

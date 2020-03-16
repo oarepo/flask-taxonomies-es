@@ -19,14 +19,14 @@ from flask_taxonomies_es.utils import _get_taxonomy_slug_from_url, _resolve_json
 
                          ]
                          )
-def test_get_taxonomy_slug_from_url(app, test_db, root_taxonomy, child_term, url, taxonomy, slug):
+def test_get_taxonomy_slug_from_url(app, db, root_taxonomy, child_term, url, taxonomy, slug):
     taxonomy_res, slug_res = _get_taxonomy_slug_from_url(
         url)
     assert taxonomy_res == taxonomy
     assert slug_res == slug
 
 
-def test_resolve_json(app, test_db, child_term):
+def test_resolve_json(app, db, child_term):
     current_flask_taxonomies_es.set(child_term)
     time.sleep(1)
     term = _resolve_json(child_term.taxonomy.slug, child_term.slug)
