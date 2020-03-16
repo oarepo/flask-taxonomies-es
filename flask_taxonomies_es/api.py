@@ -1,6 +1,6 @@
-import time
 from datetime import datetime
 
+import time
 from elasticsearch_dsl import Search, Q
 from flask_taxonomies.models import TaxonomyTerm
 from invenio_search import current_search_client
@@ -18,17 +18,19 @@ class TaxonomyESAPI:
 
     def __init__(self, app):
         self.app = app
-        self.index = app.config["TAXONOMY_ELASTICSEARCH_INDEX"]
-        self._create_index()
+        # self.index = app.config["TAXONOMY_ELASTICSEARCH_INDEX"]
+        # self._create_index()
 
-    def _create_index(self):
-        with self.app.app_context():
-            if not current_search_client.indices.exists(self.index):
-                current_search_client.indices.create(
-                    index=self.index,
-                    ignore=400,
-                    body={}
-                )
+    @property
+    def index(self):
+        _index = self.app.config["TAXONOMY_ELASTICSEARCH_INDEX"]
+        if not current_search_client.indices.exists(_index):
+            current_search_client.indices.create(
+                index=_index,
+                ignore=400,
+                body={}
+            )
+        return _index
 
     def set(self, taxonomy_term: TaxonomyTerm, timestamp=None) -> None:
         """
