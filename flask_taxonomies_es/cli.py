@@ -1,5 +1,5 @@
 import click
-from flask import cli
+from flask import cli, current_app
 from flask_taxonomies.cli import taxonomies
 from flask_taxonomies.models import Taxonomy
 
@@ -54,4 +54,6 @@ def list_(taxonomy: str):
 @es.command("reindex")
 @cli.with_appcontext
 def list_():
-    current_flask_taxonomies_es.reindex()
+    api = current_app.wsgi_app.mounts['/api']
+    with api.app_context():
+        current_flask_taxonomies_es.reindex()
