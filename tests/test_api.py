@@ -2,9 +2,11 @@ import datetime
 from datetime import datetime
 from pprint import pprint
 
+import pytest
 import time
 from invenio_search import current_search_client
 
+from flask_taxonomies_es.exceptions import InvalidTermIdentification
 from flask_taxonomies_es.proxies import current_flask_taxonomies_es
 
 
@@ -12,7 +14,7 @@ def test_init(app):
     assert current_search_client.indices.exists(app.config["TAXONOMY_ELASTICSEARCH_INDEX"])
 
 
-def test_set_get_remove(app, test_db, root_taxonomy, sample_term):
+def test_set_get_remove(app, db, root_taxonomy, sample_term):
     current_flask_taxonomies_es.set(sample_term)
     time.sleep(1)
     result = current_flask_taxonomies_es.get(root_taxonomy.slug, sample_term.slug)
@@ -45,7 +47,7 @@ def test_set_get_remove(app, test_db, root_taxonomy, sample_term):
     assert result is None
 
 
-def test_set_remove_2(app, test_db, root_taxonomy, sample_term):
+def test_set_remove_2(app, db, root_taxonomy, sample_term):
     current_flask_taxonomies_es.set(sample_term)
     time.sleep(1)
     current_flask_taxonomies_es.remove(
@@ -57,7 +59,16 @@ def test_set_remove_2(app, test_db, root_taxonomy, sample_term):
     assert result is None
 
 
-def test_list(app, test_db, root_taxonomy, sample_term, sample_term_2):
+def test_set_remove_3(app, db, root_taxonomy, sample_term):
+    current_flask_taxonomies_es.set(sample_term)
+    time.sleep(1)
+    with pytest.raises(InvalidTermIdentification):
+        current_flask_taxonomies_es.remove(
+            taxonomy_code=sample_term.taxonomy.slug,
+        )
+
+
+def test_list(app, db, root_taxonomy, sample_term, sample_term_2):
     current_flask_taxonomies_es.set(sample_term)
     current_flask_taxonomies_es.set(sample_term_2)
     time.sleep(1)
@@ -110,7 +121,7 @@ def test_list(app, test_db, root_taxonomy, sample_term, sample_term_2):
     ]
 
 
-def test_get_ref(app, test_db, root_taxonomy, child_term):
+def test_get_ref(app, db, root_taxonomy, child_term):
     current_flask_taxonomies_es.set(child_term)
     time.sleep(1)
     res = current_flask_taxonomies_es.get(root_taxonomy.slug, child_term.slug)
@@ -153,7 +164,7 @@ def test_get_ref(app, test_db, root_taxonomy, child_term):
     }
 
 
-def test_set_get_child_term(app, test_db, root_taxonomy, child_term):
+def test_set_get_child_term(app, db, root_taxonomy, child_term):
     current_flask_taxonomies_es.set(child_term)
     time.sleep(1)
     result = current_flask_taxonomies_es.get(root_taxonomy.slug, child_term.slug)
@@ -161,7 +172,7 @@ def test_set_get_child_term(app, test_db, root_taxonomy, child_term):
     assert result["path"] == '/1/3'
 
 
-def test_synchronize_es(app, db, test_db, sample_term, sample_term_2, child_term):
+def test_synchronize_es(app, db, sample_term, sample_term_2, child_term):
     current_flask_taxonomies_es._synchronize_es()
     time.sleep(1)
     terms = current_flask_taxonomies_es.list("root")
@@ -169,7 +180,7 @@ def test_synchronize_es(app, db, test_db, sample_term, sample_term_2, child_term
     assert len(terms) == 3
 
 
-def test_synchronize_es_timestamp(app, db, test_db, sample_term, sample_term_2, child_term):
+def test_synchronize_es_timestamp(app, db, sample_term, sample_term_2, child_term):
     timestamp = datetime.utcnow()
     current_flask_taxonomies_es._synchronize_es(timestamp=timestamp)
     time.sleep(1)
@@ -180,7 +191,7 @@ def test_synchronize_es_timestamp(app, db, test_db, sample_term, sample_term_2, 
         assert term['date_of_serialization'] == str(timestamp)
 
 
-def test_remove_old_es_term(app, db, test_db, sample_term, sample_term_2, child_term):
+def test_remove_old_es_term(app, db, sample_term, sample_term_2, child_term):
     timestamp = datetime.utcnow()
     current_flask_taxonomies_es._synchronize_es(timestamp=timestamp)
     time.sleep(1)
@@ -193,10 +204,25 @@ def test_remove_old_es_term(app, db, test_db, sample_term, sample_term_2, child_
     assert len(terms) == 3
     timestamp = datetime.utcnow()
     current_flask_taxonomies_es._remove_old_es_term(timestamp=timestamp)
-    terms = current_flask_taxonomies_es.list("root")
     time.sleep(1)
+    terms = current_flask_taxonomies_es.list("root")
     assert len(terms) == 0
 
-# def test_reindex(app, test_db, root_taxonomy, sample_term, child_term):
-#     current_flask_taxonomies_es.set(sample_term)
-#     current_flask_taxonomies_es.reindex()
+
+def test_reindex(app, db, root_taxonomy, sample_term, child_term):
+    current_flask_taxonomies_es.set(sample_term)
+    time.sleep(1)
+    term1 = current_flask_taxonomies_es.get(sample_term.taxonomy.slug, sample_term.slug)
+    timestamp1 = term1['date_of_serialization']
+    time.sleep(1)
+    reindex_timestamp = current_flask_taxonomies_es.reindex()
+    time.sleep(1)
+    term2 = current_flask_taxonomies_es.get(sample_term.taxonomy.slug, sample_term.slug)
+    time.sleep(1)
+    timestamp2 = term2["date_of_serialization"]
+    assert timestamp1 != timestamp2
+    time.sleep(1)
+    terms = current_flask_taxonomies_es.list("root")
+    assert len(terms) == 2
+    for term in terms:
+        assert term['date_of_serialization'] == str(reindex_timestamp)

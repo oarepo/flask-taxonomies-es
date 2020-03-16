@@ -10,7 +10,7 @@ from flask_taxonomies import FlaskTaxonomies
 from flask_taxonomies.views import blueprint as taxonomies_blueprint
 from invenio_app.factory import create_api
 from invenio_db import InvenioDB
-from invenio_db import db as db_
+from invenio_db import db as _db
 from invenio_search import InvenioSearch, current_search_client
 from sqlalchemy_utils import create_database, database_exists
 
@@ -32,13 +32,9 @@ def app():
 
         SQLALCHEMY_TRACK_MODIFICATIONS=True,
         TAXONOMY_ELASTICSEARCH_INDEX="test_taxonomies_es",
-        # SQLALCHEMY_DATABASE_URI=os.environ.get(
-        #     'SQLALCHEMY_DATABASE_URI',
-        #     'sqlite:////home/semtex/Projekty/nusl/invenio-oarepo-oai-pmh-harvester/venv/lib'
-        #     '/python3.7/site-packages/invenio/db.sqlite3'),
         SQLALCHEMY_DATABASE_URI=os.environ.get(
             'SQLALCHEMY_DATABASE_URI',
-            'postgresql+psycopg2://oarepo:oarepo@localhost/oarepo'),
+            'sqlite:////tmp/test.db'),
         SERVER_NAME='localhost',
     )
     InvenioDB(_app)
@@ -54,29 +50,44 @@ def app():
         current_search_client.indices.delete(index=_app.config["TAXONOMY_ELASTICSEARCH_INDEX"])
 
 
-@pytest.yield_fixture()
-def db(app):
-    """Database fixture."""
-    if not database_exists(str(db_.engine.url)):
-        create_database(str(db_.engine.url))
-    yield db_
+# @pytest.yield_fixture()
+# def db(app):
+#     """Database fixture."""
+#     if not database_exists(str(db_.engine.url)):
+#         create_database(str(db_.engine.url))
+#     yield db_
 
 
 @pytest.fixture
-def test_db(app):
+def db(app):
     """Create database for the tests."""
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
     with app.app_context():
-        if not database_exists(str(db_.engine.url)):
-            create_database(db_.engine.url)
-        db_.drop_all()
-        db_.create_all()
+        if not database_exists(str(_db.engine.url)) and \
+                app.config['SQLALCHEMY_DATABASE_URI'] != 'sqlite://':
+            create_database(_db.engine.url)
+        _db.create_all()
 
-    yield db_
+    yield _db
 
     # Explicitly close DB connection
-    db_.session.close()
-    db_.drop_all()
+    _db.session.close()
+    _db.drop_all()
+
+# @pytest.fixture
+# def test_db(app):
+#     """Create database for the tests."""
+#     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
+#     with app.app_context():
+#         if not database_exists(str(db_.engine.url)):
+#             create_database(db_.engine.url)
+#         db_.drop_all()
+#         db_.create_all()
+#
+#     yield db_
+#
+#     # Explicitly close DB connection
+#     db_.session.close()
+#     db_.drop_all()
 
 
 @pytest.fixture
@@ -168,3 +179,5 @@ def child_term(db, root_taxonomy, sample_term):
     db.session.add(term)
     db.session.commit()
     return term
+
+

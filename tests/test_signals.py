@@ -1,13 +1,12 @@
 import time
-
 from flask_taxonomies.models import after_taxonomy_term_created, after_taxonomy_term_deleted, \
-    before_taxonomy_jsonresolve
+    before_taxonomy_jsonresolve, after_taxonomy_term_moved
 
 from flask_taxonomies_es.proxies import current_flask_taxonomies_es
-from flask_taxonomies_es.signals import update_taxonomy_term, delete_taxonomy_term
+from flask_taxonomies_es.signals import update_taxonomy_term, delete_taxonomy_term, move_term
 
 
-def test_after_taxonomy_term_created(app, test_db, sample_term, sample_term_dict):
+def test_after_taxonomy_term_created(app, db, sample_term, sample_term_dict):
     after_taxonomy_term_created.connect(update_taxonomy_term)
     after_taxonomy_term_created.send(term=sample_term)
     taxonomy_code = sample_term.taxonomy.slug
@@ -18,7 +17,7 @@ def test_after_taxonomy_term_created(app, test_db, sample_term, sample_term_dict
     assert term_dict == sample_term_dict
 
 
-def test_after_taxonomy_term_deleted(app, test_db, sample_term, sample_term_dict):
+def test_after_taxonomy_term_deleted(app, db, sample_term, sample_term_dict):
     taxonomy_code = sample_term.taxonomy.slug
     slug = sample_term.slug
     current_flask_taxonomies_es.set(sample_term)
@@ -34,7 +33,7 @@ def test_after_taxonomy_term_deleted(app, test_db, sample_term, sample_term_dict
     assert term_dict is None
 
 
-def test_before_taxonomy_jsonresolve(app, test_db, sample_term, sample_term_dict):
+def test_before_taxonomy_jsonresolve(app, db, sample_term, sample_term_dict):
     taxonomy_code = sample_term.taxonomy.slug
     slug = sample_term.slug
     current_flask_taxonomies_es.set(sample_term)
@@ -66,5 +65,11 @@ def test_before_taxonomy_jsonresolve(app, test_db, sample_term, sample_term_dict
     }
 
 
-def test_after_taxonomy_term_moved():
-    pass
+def test_after_taxonomy_term_moved(app, db, root_taxonomy, sample_term, sample_term_2, child_term):
+    terms = current_flask_taxonomies_es.list("root")
+    assert len(terms) == 0
+    after_taxonomy_term_moved.connect(move_term)
+    after_taxonomy_term_moved.send(child_term)
+    time.sleep(1)
+    terms = current_flask_taxonomies_es.list("root")
+    assert len(terms) > 0

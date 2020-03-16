@@ -4,6 +4,7 @@ from elasticsearch_dsl import Search, Q
 from flask_taxonomies.models import TaxonomyTerm
 from invenio_search import current_search_client
 
+from flask_taxonomies_es.exceptions import InvalidTermIdentification
 from flask_taxonomies_es.serializer import get_taxonomy_term
 from flask_taxonomies_es.utils import _get_taxonomy_slug_from_url
 
@@ -71,7 +72,8 @@ class TaxonomyESAPI:
         elif taxonomy_code and slug:
             id_ = self.get(taxonomy_code, slug)["id"]
         else:
-            raise Exception("TaxonomyTerm or Taxonomy Code with slug must be specified")
+            raise InvalidTermIdentification(
+                "TaxonomyTerm or Taxonomy Code with slug must be specified")
         current_search_client.delete(
             index=self.index,
             id=id_
@@ -127,16 +129,17 @@ class TaxonomyESAPI:
         results = list(s.query(query))
         return [result.to_dict() for result in results]
 
-    def reindex(self) -> None:
+    def reindex(self) -> datetime:
         """
         Reindex taxonomy index. Update taxonomy term and remove obsolete taxonomy terms.
 
-        :return: None
-        :rtype: None
+        :return: UTC timestamp
+        :rtype: datetime
         """
         timestamp = datetime.utcnow()
         self._synchronize_es(timestamp=timestamp)
         self._remove_old_es_term(timestamp)
+        return timestamp
 
     def _synchronize_es(self, timestamp=None) -> None:
         with self.app.app_context():

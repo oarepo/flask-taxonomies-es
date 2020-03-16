@@ -46,7 +46,7 @@ def jsonify_taxonomy_term(t: TaxonomyTerm,
         raise Exception()
     result = {
         **(t.extra_data or {}),
-        "date_of_serialization": str(timestamp) or str(datetime.utcnow()),
+        "date_of_serialization": str(timestamp) if timestamp else str(datetime.utcnow()),
         "id": t.id,
         "slug": t.slug,
         "taxonomy": t.taxonomy.slug,
