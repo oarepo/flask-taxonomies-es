@@ -1,0 +1,2 @@
+class InvalidTermIdentification(Exception):
+    pass

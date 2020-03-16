@@ -21,7 +21,7 @@ from flask_taxonomies.proxies import current_flask_taxonomies
 from flask_taxonomies.views import format_ancestor
 
 
-def get_taxonomy_term(code=None, slug=None, timestamp=datetime.utcnow()):
+def get_taxonomy_term(code=None, slug=None, timestamp=None):
     try:
         taxonomy = Taxonomy.get(code)
         term = taxonomy.find_term(slug)
@@ -30,7 +30,7 @@ def get_taxonomy_term(code=None, slug=None, timestamp=datetime.utcnow()):
         traceback.print_exc()
         raise ValueError("The taxonomy term does not exist.")
     resp = jsonify_taxonomy_term(term, taxonomy.code, term.tree_path,
-                                 term.parent.tree_path or '', parents, timestamp=datetime.utcnow())
+                                 term.parent.tree_path or '', parents, timestamp=timestamp)
     return resp
 
 
@@ -39,14 +39,14 @@ def jsonify_taxonomy_term(t: TaxonomyTerm,
                           path: str,
                           parent_path: str = None,
                           parents: List = None,
-                          timestamp=datetime.utcnow()
+                          timestamp=None
                           ) -> dict:
     """Prepare TaxonomyTerm to be easily jsonified."""
     if not path.startswith('/'):
         raise Exception()
     result = {
         **(t.extra_data or {}),
-        "date_of_serialization": str(timestamp),
+        "date_of_serialization": str(timestamp) if timestamp else str(datetime.utcnow()),
         "id": t.id,
         "slug": t.slug,
         "taxonomy": t.taxonomy.slug,
