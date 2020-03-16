@@ -178,6 +178,7 @@ def test_synchronize_es(app, db, sample_term, sample_term_2, child_term):
     terms = current_flask_taxonomies_es.list("root")
     time.sleep(1)
     assert len(terms) == 3
+    pprint(terms)
 
 
 def test_synchronize_es_timestamp(app, db, sample_term, sample_term_2, child_term):
@@ -187,6 +188,7 @@ def test_synchronize_es_timestamp(app, db, sample_term, sample_term_2, child_ter
     terms = current_flask_taxonomies_es.list("root")
     time.sleep(1)
     assert len(terms) == 3
+    pprint(terms)
     for term in terms:
         assert term['date_of_serialization'] == str(timestamp)
 
@@ -199,8 +201,8 @@ def test_remove_old_es_term(app, db, sample_term, sample_term_2, child_term):
     time.sleep(1)
     assert len(terms) == 3
     current_flask_taxonomies_es._remove_old_es_term(timestamp=timestamp)
-    terms = current_flask_taxonomies_es.list("root")
     time.sleep(1)
+    terms = current_flask_taxonomies_es.list("root")
     assert len(terms) == 3
     timestamp = datetime.utcnow()
     current_flask_taxonomies_es._remove_old_es_term(timestamp=timestamp)

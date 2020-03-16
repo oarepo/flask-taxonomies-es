@@ -1,3 +1,4 @@
+import time
 from datetime import datetime
 
 from elasticsearch_dsl import Search, Q
@@ -138,6 +139,7 @@ class TaxonomyESAPI:
         """
         timestamp = datetime.utcnow()
         self._synchronize_es(timestamp=timestamp)
+        time.sleep(1)
         self._remove_old_es_term(timestamp)
         return timestamp
 
