@@ -74,6 +74,7 @@ def db(app):
     _db.session.close()
     _db.drop_all()
 
+
 # @pytest.fixture
 # def test_db(app):
 #     """Create database for the tests."""
@@ -119,6 +120,7 @@ def sample_term(db, root_taxonomy):
     db.session.add(term)
     db.session.commit()
     return term
+
 
 @pytest.fixture
 def sample_term_dict():
@@ -182,3 +184,17 @@ def child_term(db, root_taxonomy, sample_term):
     return term
 
 
+@pytest.fixture
+def term_without_slug(db, root_taxonomy, sample_term):
+    extra_data = {
+        "title": [
+            {
+                "lang": "cze",
+                "value": "Bez slugu"
+            }
+        ]
+    }
+    term = sample_term.create_term(slug="", extra_data=extra_data)
+    db.session.add(term)
+    db.session.commit()
+    return term

@@ -34,3 +34,5 @@ class FlaskTaxonomiesES(object):
 
         app.config.setdefault("TAXONOMY_ELASTICSEARCH_INDEX",
                               config.TAXONOMY_ELASTICSEARCH_INDEX)  # pragma: no cover
+        app.config.setdefault("TAXONOMY_ELASTICSEARCH_LOG_DIR",
+                              config.TAXONOMY_ELASTICSEARCH_LOG_DIR)  # pragma: no cover
