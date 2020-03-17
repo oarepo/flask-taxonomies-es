@@ -173,7 +173,6 @@ def test_synchronize_es(app, db, sample_term, sample_term_2, child_term):
     terms = current_flask_taxonomies_es.list("root")
     time.sleep(1)
     assert len(terms) == 3
-    pprint(terms)
 
 
 def test_synchronize_es_timestamp(app, db, sample_term, sample_term_2, child_term):

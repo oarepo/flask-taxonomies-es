@@ -1,6 +1,7 @@
 from datetime import datetime
 
 import time
+from elasticsearch.helpers import streaming_bulk
 from elasticsearch_dsl import Search, Q
 from flask_taxonomies.models import TaxonomyTerm
 from invenio_search import current_search_client
@@ -146,12 +147,38 @@ class TaxonomyESAPI:
         return timestamp
 
     def _synchronize_es(self, timestamp=None) -> None:
+        success, failed = 0, 0
+        errors = []
         with self.app.app_context():
-            for node in TaxonomyTerm.query.all():
-                self.set(node, timestamp=timestamp)
-                print(
-                    f'Taxonomy term with slug: \"{node.slug}\" from taxonomy: \"'
-                    f'{node.taxonomy.slug}\" has been updated')
+            iterator = iter(self._taxonomy_terms_generator(timestamp))
+            for ok, item in streaming_bulk(current_search_client, iterator):
+                if not ok:
+                    errors.append(item)
+                    failed += 1
+                else:
+                    success += 1
+        print("REINDEX RESULTS:")
+        print(f"Failed: {failed}")
+        print(f"Succeed: {success}")
+        if len(errors) > 0:
+            print("Errors:", errors)
+        print("\n\n")
+
+    def _taxonomy_terms_generator(self, timestamp):
+        index_ = self.index
+        for node in TaxonomyTerm.query.all():
+            if node.parent:
+                body = get_taxonomy_term(
+                    code=node.taxonomy.slug,
+                    slug=node.slug,
+                    timestamp=timestamp
+                )
+                yield {
+                    '_op_type': 'index',
+                    '_index': index_,
+                    '_id': node.id,
+                    '_source': body
+                }
 
     def _remove_old_es_term(self, timestamp) -> None:
         taxonomies = TaxonomyTerm.query.filter_by(level=1).all()
