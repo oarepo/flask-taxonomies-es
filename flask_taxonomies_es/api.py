@@ -1,6 +1,10 @@
+import os
+import traceback
 from datetime import datetime
+from time import strftime
 
 import time
+from docutils.nodes import option_string
 from elasticsearch.helpers import streaming_bulk
 from elasticsearch_dsl import Search, Q
 from flask_taxonomies.models import TaxonomyTerm
@@ -149,36 +153,58 @@ class TaxonomyESAPI:
     def _synchronize_es(self, timestamp=None) -> None:
         success, failed = 0, 0
         errors = []
-        with self.app.app_context():
-            iterator = iter(self._taxonomy_terms_generator(timestamp))
-            for ok, item in streaming_bulk(current_search_client, iterator):
-                if not ok:
-                    errors.append(item)
-                    failed += 1
-                else:
-                    success += 1
-        print("REINDEX RESULTS:")
-        print(f"Failed: {failed}")
-        print(f"Succeed: {success}")
-        if len(errors) > 0:
-            print("Errors:", errors)
-        print("\n\n")
+        try:
+            with self.app.app_context():
+                iterator = iter(self._taxonomy_terms_generator(timestamp))
+                for ok, item in streaming_bulk(
+                        current_search_client,
+                        iterator,
+                        raise_on_exception=False):
+                    if not ok:
+                        errors.append(item)
+                        failed += 1
+                    else:
+                        success += 1
+        finally:
+            print("REINDEX RESULTS:")
+            print(f"Failed: {failed}")
+            print(f"Succeed: {success}")
+            if len(errors) > 0:
+                print("Errors:", errors)
+            print("\n\n")
 
     def _taxonomy_terms_generator(self, timestamp):
         index_ = self.index
+        path = self.app.config["TAXONOMY_ELASTICSEARCH_LOG_DIR"]
+        if not os.path.exists(path):
+            os.mkdir(path)
         for node in TaxonomyTerm.query.all():
-            if node.parent:
-                body = get_taxonomy_term(
-                    code=node.taxonomy.slug,
-                    slug=node.slug,
-                    timestamp=timestamp
-                )
-                yield {
-                    '_op_type': 'index',
-                    '_index': index_,
-                    '_id': node.id,
-                    '_source': body
-                }
+            try:
+                if node.parent:
+                    body = get_taxonomy_term(
+                        code=node.taxonomy.slug,
+                        slug=node.slug,
+                        timestamp=timestamp
+                    )
+                    yield {
+                        '_op_type': 'index',
+                        '_index': index_,
+                        '_id': node.id,
+                        '_source': body
+                    }
+            except:
+                exc_traceback = traceback.format_exc()
+                print(exc_traceback)
+                print("\n\n\n")
+                if timestamp is None:
+                    timestamp = datetime.utcnow()
+                file_name = f'{timestamp.strftime("%Y%m%dT%H%M%S")}.err'
+                file_path = os.path.join(path, file_name)
+                with open(file_path, "w") as f:
+                    f.write(
+                        f"TAXONOMY CODE: {node.taxonomy.slug}; SLUG: {node.slug}\n\n"
+                        f"{exc_traceback}")
+                continue
 
     def _remove_old_es_term(self, timestamp) -> None:
         taxonomies = TaxonomyTerm.query.filter_by(level=1).all()
