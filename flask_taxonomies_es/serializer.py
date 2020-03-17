@@ -30,7 +30,7 @@ def get_taxonomy_term(code=None, slug=None, timestamp=None):
         traceback.print_exc()
         raise ValueError("The taxonomy term does not exist.")
     resp = jsonify_taxonomy_term(term, taxonomy.code, term.tree_path,
-                                 term.parent.tree_path or '', parents, timestamp=timestamp)
+                             term.parent.tree_path or '', parents, timestamp=timestamp)
     return resp
 
 

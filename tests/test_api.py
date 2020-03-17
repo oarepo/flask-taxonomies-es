@@ -222,3 +222,14 @@ def test_reindex(app, db, root_taxonomy, sample_term, child_term):
     assert len(terms) == 2
     for term in terms:
         assert term['date_of_serialization'] == str(reindex_timestamp)
+
+
+def test_taxonomy_terms_generator(app, db, root_taxonomy, term_without_slug):
+    timestamp = datetime.utcnow()
+    file_name = f'{timestamp.strftime("%Y%m%dT%H%M%S")}.err'
+    list(current_flask_taxonomies_es._taxonomy_terms_generator(timestamp))
+    path = f"/tmp/log/{file_name}"
+    with open(path, "r") as f:
+        message = f.read()
+    assert len(message) > 10
+
