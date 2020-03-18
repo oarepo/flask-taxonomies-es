@@ -26,44 +26,13 @@ def test_get_taxonomy_slug_from_url(app, db, root_taxonomy, child_term, url, tax
     assert slug_res == slug
 
 
-def test_resolve_json(app, db, child_term):
+def test_resolve_json(app, db, child_term, child_term_dict):
     current_flask_taxonomies_es.set(child_term)
     time.sleep(1)
     term = _resolve_json(child_term.taxonomy.slug, child_term.slug)
-    assert term == {
-        'ancestors': [
-            {
-                'address': 'Technická 5, 166 28 Praha 6',
-                'level': 1,
-                'lib_url': '',
-                'slug': '1',
-                'title': [
-                    {
-                        'lang': 'cze',
-                        'value': 'Vysoká škola chemicko-technologická v '
-                                 'Praze'
-                    }
-                ],
-                'url': 'http://www.vscht.cz/'
-            }
-        ],
-        'id': 3,
-        'level': 2,
-        'links': {
-            'parent': 'http://localhost/taxonomies/root/1/',
-            'parent_tree': 'http://localhost/taxonomies/root/1/?drilldown=True',
-            'self': 'http://localhost/taxonomies/root/1/3/',
-            'tree': 'http://localhost/taxonomies/root/1/3/?drilldown=True'
-        },
-        'path': '/1/3',
-        'slug': '3',
-        'title': [
-            {
-                'lang': 'cze',
-                'value': 'Dítě'
-            }
-        ]
-    }
+    child_term_dict = child_term_dict
+    del child_term_dict["taxonomy"]
+    assert term == child_term_dict
 
 
 def test_get_tree_ids(app, db, root_taxonomy):
