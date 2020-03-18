@@ -170,12 +170,33 @@ def sample_term_dict():
         'taxonomy': 'root',
         'path': '/1',
         'links': {
-            'self': 'http://localhost/taxonomies/root/1/',
-            'tree': 'http://localhost/taxonomies/root/1/?drilldown=True',
-            'parent': 'http://localhost/taxonomies/root/',
-            'parent_tree': 'http://localhost/taxonomies/root/?drilldown=True'
+            'self': 'http://localhost/api/taxonomies/root/1/',
+            'tree': 'http://localhost/api/taxonomies/root/1/?drilldown=True',
+            'parent': 'http://localhost/api/taxonomies/root/',
+            'parent_tree': 'http://localhost/api/taxonomies/root/?drilldown=True'
         },
         'level': 1
+    }
+
+
+@pytest.fixture
+def sample_term_2_dict():
+    return {
+        'address': 'Ovocný trh 5, 116 36 Praha 1',
+        'id': 3,
+        'level': 1,
+        'lib_url': 'https://dspace.cuni.cz/',
+        'links': {
+            'parent': 'http://localhost/api/taxonomies/root/',
+            'parent_tree': 'http://localhost/api/taxonomies/root/?drilldown=True',
+            'self': 'http://localhost/api/taxonomies/root/2/',
+            'tree': 'http://localhost/api/taxonomies/root/2/?drilldown=True'
+        },
+        'path': '/2',
+        'slug': '2',
+        'taxonomy': 'root',
+        'title': [{'lang': 'cze', 'value': 'Univerzita Karlova'}],
+        'url': 'http://cuni.cz/'
     }
 
 
@@ -213,6 +234,36 @@ def child_term(db, root_taxonomy, sample_term):
     db.session.add(term)
     db.session.commit()
     return term
+
+
+@pytest.fixture
+def child_term_dict():
+    return {
+        'ancestors': [{
+                          'address': 'Technická 5, 166 28 Praha 6',
+                          'level': 1,
+                          'lib_url': '',
+                          'slug': '1',
+                          'title': [{
+                                        'lang': 'cze',
+                                        'value': 'Vysoká škola chemicko-technologická v '
+                                                 'Praze'
+                                    }],
+                          'url': 'http://www.vscht.cz/'
+                      }],
+        'id': 3,
+        'level': 2,
+        'links': {
+            'parent': 'http://localhost/api/taxonomies/root/1/',
+            'parent_tree': 'http://localhost/api/taxonomies/root/1/?drilldown=True',
+            'self': 'http://localhost/api/taxonomies/root/1/3/',
+            'tree': 'http://localhost/api/taxonomies/root/1/3/?drilldown=True'
+        },
+        'path': '/1/3',
+        'slug': '3',
+        'taxonomy': 'root',
+        'title': [{'lang': 'cze', 'value': 'Dítě'}]
+    }
 
 
 @pytest.fixture

@@ -42,27 +42,9 @@ def test_before_taxonomy_jsonresolve(app, db, sample_term, sample_term_dict):
     del taxonomy_dict['date_of_serialization']
     assert taxonomy_dict == sample_term_dict
     resp = before_taxonomy_jsonresolve.send(None, code=taxonomy_code, slug=slug)
-    assert resp[0][1] == {
-        'address': 'Technická 5, 166 28 Praha 6',
-        'id': 2,
-        'level': 1,
-        'lib_url': '',
-        'links': {
-            'parent': 'http://localhost/taxonomies/root/',
-            'parent_tree': 'http://localhost/taxonomies/root/?drilldown=True',
-            'self': 'http://localhost/taxonomies/root/1/',
-            'tree': 'http://localhost/taxonomies/root/1/?drilldown=True'
-        },
-        'path': '/1',
-        'slug': '1',
-        'title': [
-            {
-                'lang': 'cze',
-                'value': 'Vysoká škola chemicko-technologická v Praze'
-            }
-        ],
-        'url': 'http://www.vscht.cz/'
-    }
+    sample_term_dict = sample_term_dict
+    del sample_term_dict["taxonomy"]
+    assert resp[0][1] == sample_term_dict
 
 
 def test_after_taxonomy_term_moved(app, db, root_taxonomy, sample_term, sample_term_2, child_term):
