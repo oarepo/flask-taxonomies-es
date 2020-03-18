@@ -1,3 +1,5 @@
+from pprint import pprint
+
 import click
 from flask import cli, current_app
 from flask_taxonomies.cli import taxonomies
@@ -48,12 +50,14 @@ def remove_(taxonomy: str, slug: str):
 @click.argument("taxonomy")
 @cli.with_appcontext
 def list_(taxonomy: str):
-    current_flask_taxonomies_es.list(taxonomy)
+    pprint(current_flask_taxonomies_es.list(taxonomy))
 
 
 @es.command("reindex")
+@click.option("-t", "--taxonomy", multiple=True, type=str,
+              help="List of taxonomies, every taxonomy must start with -t option")
 @cli.with_appcontext
-def list_():
+def reindex_(taxonomy):
     api = current_app.wsgi_app.mounts['/api']
     with api.app_context():
-        current_flask_taxonomies_es.reindex()
+        current_flask_taxonomies_es.reindex(taxonomies=list(taxonomy))

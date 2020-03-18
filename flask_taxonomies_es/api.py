@@ -1,10 +1,8 @@
 import os
+import time
 import traceback
 from datetime import datetime
-from time import strftime
 
-import time
-from docutils.nodes import option_string
 from elasticsearch.helpers import streaming_bulk
 from elasticsearch_dsl import Search, Q
 from flask_taxonomies.models import TaxonomyTerm
@@ -12,7 +10,7 @@ from invenio_search import current_search_client
 
 from flask_taxonomies_es.exceptions import InvalidTermIdentification
 from flask_taxonomies_es.serializer import get_taxonomy_term
-from flask_taxonomies_es.utils import _get_taxonomy_slug_from_url
+from flask_taxonomies_es.utils import _get_taxonomy_slug_from_url, _get_tree_ids, bcolors
 
 
 class TaxonomyESAPI:
@@ -134,10 +132,11 @@ class TaxonomyESAPI:
         """
         s = Search(using=current_search_client, index=self.index)
         query = Q("match", taxonomy=taxonomy_code)
-        results = list(s.query(query))
+        search_query = s.query(query)
+        results = list(search_query.scan())
         return [result.to_dict() for result in results]
 
-    def reindex(self) -> datetime:
+    def reindex(self, taxonomies: list = None) -> datetime:
         """
         Reindex taxonomy index. Update taxonomy term and remove obsolete taxonomy terms.
 
@@ -145,17 +144,17 @@ class TaxonomyESAPI:
         :rtype: datetime
         """
         timestamp = datetime.utcnow()
-        self._synchronize_es(timestamp=timestamp)
+        self._synchronize_es(timestamp=timestamp, taxonomies=taxonomies)
         time.sleep(1)
-        self._remove_old_es_term(timestamp)
+        self._remove_old_es_term(timestamp, taxonomies=taxonomies)
         return timestamp
 
-    def _synchronize_es(self, timestamp=None) -> None:
+    def _synchronize_es(self, timestamp=None, taxonomies: list = None) -> None:
         success, failed = 0, 0
         errors = []
         try:
             with self.app.app_context():
-                iterator = iter(self._taxonomy_terms_generator(timestamp))
+                iterator = iter(self._taxonomy_terms_generator(timestamp, taxonomies=taxonomies))
                 for ok, item in streaming_bulk(
                         current_search_client,
                         iterator,
@@ -173,12 +172,17 @@ class TaxonomyESAPI:
                 print("Errors:", errors)
             print("\n\n")
 
-    def _taxonomy_terms_generator(self, timestamp):
+    def _taxonomy_terms_generator(self, timestamp, taxonomies: list = None):
         index_ = self.index
         path = self.app.config["TAXONOMY_ELASTICSEARCH_LOG_DIR"]
+        if taxonomies is None:
+            query = TaxonomyTerm.query.all()
+        else:
+            tree_ids = _get_tree_ids(taxonomies)
+            query = TaxonomyTerm.query.filter(TaxonomyTerm.tree_id.in_(tree_ids))
         if not os.path.exists(path):
             os.mkdir(path)
-        for node in TaxonomyTerm.query.all():
+        for node in query:
             try:
                 if node.parent:
                     body = get_taxonomy_term(
@@ -206,10 +210,17 @@ class TaxonomyESAPI:
                         f"{exc_traceback}")
                 continue
 
-    def _remove_old_es_term(self, timestamp) -> None:
-        taxonomies = TaxonomyTerm.query.filter_by(level=1).all()
+    def _remove_old_es_term(self, timestamp, taxonomies: list = None) -> None:
+        if taxonomies is None:
+            taxonomies = TaxonomyTerm.query.filter_by(level=1).all()
+            taxonomies = [taxonomy.slug for taxonomy in taxonomies]
         for taxonomy in taxonomies:
-            for node in self.list(taxonomy.slug):
+            terms_list = self.list(taxonomy)
+            if len(terms_list) == 0:
+                print(
+                    f"{bcolors.WARNING}WARNING: Taxonomy \"{taxonomy}\" does not exist or does "
+                    f"not contain any term{bcolors.ENDC}")
+            for node in terms_list:
                 date_of_serialization = datetime.strptime(
                     node["date_of_serialization"],
                     '%Y-%m-%d %H:%M:%S.%f'

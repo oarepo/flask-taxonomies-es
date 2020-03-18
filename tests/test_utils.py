@@ -4,7 +4,7 @@ from pprint import pprint
 import pytest
 
 from flask_taxonomies_es.proxies import current_flask_taxonomies_es
-from flask_taxonomies_es.utils import _get_taxonomy_slug_from_url, _resolve_json
+from flask_taxonomies_es.utils import _get_taxonomy_slug_from_url, _resolve_json, _get_tree_ids
 
 
 @pytest.mark.parametrize("url, taxonomy, slug",
@@ -64,3 +64,8 @@ def test_resolve_json(app, db, child_term):
             }
         ]
     }
+
+
+def test_get_tree_ids(app, db, root_taxonomy):
+    tree_ids = _get_tree_ids(["root", "bla"])
+    assert tree_ids == [1]
