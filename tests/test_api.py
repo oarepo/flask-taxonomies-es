@@ -205,6 +205,58 @@ def test_remove_old_es_term(app, db, sample_term, sample_term_2, child_term):
     assert len(terms) == 0
 
 
+def test_remove_old_es_term_2(app, db, sample_term, sample_term_2, child_term, root_taxonomy_2,
+                              sample_term_21):
+    timestamp = datetime.utcnow()
+    current_flask_taxonomies_es._synchronize_es(timestamp=timestamp)
+    time.sleep(1)
+    terms = current_flask_taxonomies_es.list("root")
+    time.sleep(1)
+    terms.extend(current_flask_taxonomies_es.list("root_2"))
+    time.sleep(1)
+    assert len(terms) == 4
+    timestamp = datetime.utcnow()
+    current_flask_taxonomies_es._remove_old_es_term(timestamp=timestamp, taxonomies=["root"])
+    time.sleep(1)
+    terms = current_flask_taxonomies_es.list("root")
+    assert len(terms) == 0
+    time.sleep(1)
+    terms = current_flask_taxonomies_es.list("root_2")
+    assert len(terms) == 1
+
+
+def test_remove_old_es_term_3(app, db, sample_term, sample_term_2, child_term, root_taxonomy_2,
+                              sample_term_21):
+    timestamp = datetime.utcnow()
+    current_flask_taxonomies_es._synchronize_es(timestamp=timestamp)
+    time.sleep(1)
+    timestamp = datetime.utcnow()
+    current_flask_taxonomies_es._remove_old_es_term(timestamp=timestamp,
+                                                    taxonomies=["root", "root_2"])
+    time.sleep(1)
+    terms = current_flask_taxonomies_es.list("root")
+    assert len(terms) == 0
+    time.sleep(1)
+    terms = current_flask_taxonomies_es.list("root_2")
+    assert len(terms) == 0
+
+
+def test_remove_old_es_term_4(app, db, sample_term, sample_term_2, child_term, root_taxonomy_2,
+                              sample_term_21):
+    timestamp = datetime.utcnow()
+    current_flask_taxonomies_es._synchronize_es(timestamp=timestamp)
+    time.sleep(1)
+    timestamp = datetime.utcnow()
+    current_flask_taxonomies_es._remove_old_es_term(timestamp=timestamp,
+                                                    taxonomies=["root", "bla"])
+    time.sleep(1)
+    terms = current_flask_taxonomies_es.list("root")
+    assert len(terms) == 0
+    time.sleep(1)
+    terms = current_flask_taxonomies_es.list("root_2")
+    assert len(terms) == 1
+
+
 def test_reindex(app, db, root_taxonomy, sample_term, child_term):
     current_flask_taxonomies_es.set(sample_term)
     time.sleep(1)
@@ -233,3 +285,19 @@ def test_taxonomy_terms_generator(app, db, root_taxonomy, term_without_slug):
         message = f.read()
     assert len(message) > 10
 
+
+def test_taxonomy_terms_generator_2(app, db, root_taxonomy, sample_term, sample_term_2, child_term,
+                                    root_taxonomy_2, sample_term_21):
+    timestamp = datetime.utcnow()
+    tax_list = list(current_flask_taxonomies_es._taxonomy_terms_generator(timestamp,
+                                                                          taxonomies=["root",
+                                                                                      "bla"]))
+    assert len(tax_list) == 3
+    tax_list2 = list(current_flask_taxonomies_es._taxonomy_terms_generator(timestamp,
+                                                                           taxonomies=["root_2",
+                                                                                       "bla"]))
+    assert len(tax_list2) == 1
+    tax_list3 = list(current_flask_taxonomies_es._taxonomy_terms_generator(timestamp,
+                                                                           taxonomies=["root_2",
+                                                                                       "root"]))
+    assert len(tax_list3) == 4

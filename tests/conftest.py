@@ -103,6 +103,16 @@ def root_taxonomy(db):
 
 
 @pytest.fixture
+def root_taxonomy_2(db):
+    """Create root taxonomy element."""
+    from flask_taxonomies.models import Taxonomy
+    root = Taxonomy.create_taxonomy(code="root_2")
+    db.session.add(root)
+    db.session.commit()
+    return root
+
+
+@pytest.fixture
 def sample_term(db, root_taxonomy):
     """Taxonomy Term fixture."""
     extra_data = {
@@ -117,6 +127,27 @@ def sample_term(db, root_taxonomy):
         "lib_url": ""
     }
     term = root_taxonomy.create_term(slug="1", extra_data=extra_data)
+    db.session.add(term)
+    db.session.commit()
+    return term
+
+
+@pytest.fixture
+def sample_term_21(db, root_taxonomy_2):
+    """Taxonomy Term fixture."""
+    extra_data = {
+        "title": [
+            {
+                "lang": "cze",
+                "value": "česky"
+            },
+            {
+                "lang": "eng",
+                "value": "anglicky"
+            }
+        ],
+    }
+    term = root_taxonomy_2.create_term(slug="21", extra_data=extra_data)
     db.session.add(term)
     db.session.commit()
     return term
