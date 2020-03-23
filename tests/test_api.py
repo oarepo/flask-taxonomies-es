@@ -5,6 +5,9 @@ from pprint import pprint
 import pytest
 import time
 
+from elasticsearch_dsl import Q
+from elasticsearch_dsl.exceptions import UnknownDslObject
+
 from flask_taxonomies_es.exceptions import InvalidTermIdentification
 from flask_taxonomies_es.proxies import current_flask_taxonomies_es
 
@@ -42,7 +45,8 @@ def test_set_remove_3(app, db, root_taxonomy, sample_term):
         )
 
 
-def test_list(app, db, root_taxonomy, sample_term, sample_term_2, sample_term_dict, sample_term_2_dict):
+def test_list(app, db, root_taxonomy, sample_term, sample_term_2, sample_term_dict,
+              sample_term_2_dict):
     current_flask_taxonomies_es.set(sample_term)
     current_flask_taxonomies_es.set(sample_term_2)
     time.sleep(1)
@@ -206,3 +210,20 @@ def test_taxonomy_terms_generator_2(app, db, root_taxonomy, sample_term, sample_
                                                                            taxonomies=["root_2",
                                                                                        "root"]))
     assert len(tax_list3) == 4
+
+
+def test_search(app, db, root_taxonomy, child_term, child_term_dict):
+    current_flask_taxonomies_es.reindex()
+    time.sleep(1)
+    query = Q("term", taxonomy__keyword="root") & Q("term", title__value__keyword='Dítě')
+    result = current_flask_taxonomies_es.search(query)
+    del result[0]["date_of_serialization"]
+    assert len(result) == 1
+    assert result[0] == child_term_dict
+
+
+def test_search_2(app, db, root_taxonomy, child_term):
+    current_flask_taxonomies_es.reindex()
+    time.sleep(1)
+    with pytest.raises(UnknownDslObject):
+        Q("bla", taxonomy__keyword="root")

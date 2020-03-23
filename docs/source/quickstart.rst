@@ -38,3 +38,12 @@ See the `API documentation`_ for more information.
 
 .. _Flask-Taxonomies: https://github.com/oarepo/flask-taxonomies
 .. _API documentation: api.html
+
+
+The method returns elasticsearch search results, taking the Q query from
+elasticsearch-dsl as a parameter.
+
+:param query: `<https://elasticsearch-dsl.readthedocs.io/en/latest/search_dsl.html#queries>`_
+:type query: elasticsearch_dsl.Q
+:return:
+:rtype:
