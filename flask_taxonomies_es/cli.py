@@ -60,4 +60,7 @@ def list_(taxonomy: str):
 def reindex_(taxonomy):
     api = current_app.wsgi_app.mounts['/api']
     with api.app_context():
-        current_flask_taxonomies_es.reindex(taxonomies=list(taxonomy))
+        if len(taxonomy) == 0:
+            current_flask_taxonomies_es.reindex()
+        else:
+            current_flask_taxonomies_es.reindex(taxonomies=list(taxonomy))
