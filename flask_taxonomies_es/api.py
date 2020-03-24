@@ -95,7 +95,9 @@ class TaxonomyESAPI:
         :return: Serialized taxonomy term as dict
         :rtype: dict
         """
-        query = Q("match", taxonomy=taxonomy_code) & Q("match", slug=slug)
+        if slug.endswith("/"):
+            slug = slug[:-1]
+        query = Q("term", taxonomy__keyword=taxonomy_code) & Q("term", slug__keyword=slug)
         # s = Search(using=current_search_client, index=self.index)
         # results = list(s.query(query))
         results = self.search(query)
