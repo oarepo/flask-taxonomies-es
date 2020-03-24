@@ -95,11 +95,12 @@ class TaxonomyESAPI:
         :return: Serialized taxonomy term as dict
         :rtype: dict
         """
-        s = Search(using=current_search_client, index=self.index)
         query = Q("match", taxonomy=taxonomy_code) & Q("match", slug=slug)
-        results = list(s.query(query))
+        # s = Search(using=current_search_client, index=self.index)
+        # results = list(s.query(query))
+        results = self.search(query)
         if len(results) == 1:
-            return results[0].to_dict()
+            return results[0]
         elif len(results) == 0:
             return None
         else:
@@ -130,10 +131,31 @@ class TaxonomyESAPI:
         :return: List of serialized (dict) taxonomy terms
         :rtype: list
         """
-        s = Search(using=current_search_client, index=self.index)
         query = Q("match", taxonomy=taxonomy_code)
+        return self.search(query)
+
+    def search(self, query: Q, match=False):
+        """
+        The method returns elasticsearch search results, taking the Q query from
+        elasticsearch-dsl as a parameter.
+
+        :param query: `<https://elasticsearch-dsl.readthedocs.io/en/latest/search_dsl.html
+        #queries>`_
+        :type query: elasticsearch_dsl.Q
+        :return: list of jsonify results
+        :rtype: list
+        """
+        s = Search(using=current_search_client, index=self.index)
         search_query = s.query(query)
-        results = list(search_query.scan())
+        if match:
+            search_query.sort({
+                "_score": {
+                    "order": "desc"
+                }
+            })
+            results = list(search_query)
+        else:
+            results = list(search_query.scan())
         return [result.to_dict() for result in results]
 
     def reindex(self, taxonomies: list = None) -> datetime:
@@ -204,10 +226,10 @@ class TaxonomyESAPI:
                     timestamp = datetime.utcnow()
                 file_name = f'{timestamp.strftime("%Y%m%dT%H%M%S")}.err'
                 file_path = os.path.join(path, file_name)
-                with open(file_path, "w") as f:
+                with open(file_path, "a") as f:
                     f.write(
                         f"TAXONOMY CODE: {node.taxonomy.slug}; SLUG: {node.slug}\n\n"
-                        f"{exc_traceback}")
+                        f"{exc_traceback}\n\n\n\n")
                 continue
 
     def _remove_old_es_term(self, timestamp, taxonomies: list = None) -> None:
