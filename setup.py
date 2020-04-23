@@ -12,7 +12,9 @@ OAREPO_VERSION = os.environ.get('OAREPO_VERSION', '3.1.1')
 install_requires = [
     'flask-taxonomies',
     'elasticsearch>=7.0.0,<8.0.0',
-    'elasticsearch-dsl>=7.0.0,<8.0.0'
+    'elasticsearch-dsl>=7.0.0,<8.0.0',
+    'webargs<6.0.0',
+    'email_validator'
 ]
 
 tests_require = [
