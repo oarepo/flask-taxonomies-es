@@ -27,8 +27,9 @@ def _get_taxonomy_slug_from_url(taxonomy_url):
 
 def _resolve_json(code, slug):
     term = current_flask_taxonomies_es.get(code, slug)
-    del term["date_of_serialization"]
-    del term["taxonomy"]
+    if term:
+        del term["date_of_serialization"]
+        del term["taxonomy"]
     return term
 
 
