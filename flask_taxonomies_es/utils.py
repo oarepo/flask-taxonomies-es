@@ -1,6 +1,8 @@
 from urllib.parse import urlparse
 
-from flask_taxonomies.models import Taxonomy
+from flask import current_app
+from flask_taxonomies.models import Taxonomy, TaxonomyTerm
+from werkzeug.utils import cached_property
 
 from flask_taxonomies_es.proxies import current_flask_taxonomies_es
 
@@ -40,3 +42,46 @@ def _get_tree_ids(taxonomies: list) -> list:
         if tax is not None:
             tree_ids.append(tax.tree_id)
     return tree_ids
+
+
+class Constants:
+    @cached_property
+    def server_name(self):
+        return current_app.config.get('SERVER_NAME')
+
+
+constants = Constants()
+
+
+def link_self(taxonomy_code, taxonomy_term=None, taxonomy_slug=None, parent_path: str = None):
+    """
+    Function returns reference to the taxonomy from taxonomy code and taxonomy term.
+    :param taxonomy_code:
+    :param taxonomy_term:
+    :return:
+    """
+
+    SERVER_NAME = constants.server_name
+    base = f"http://{SERVER_NAME}/api/taxonomies"
+    if taxonomy_term and not taxonomy_slug:
+        slug = taxonomy_term.slug
+    elif not taxonomy_term and taxonomy_slug:
+        slug = taxonomy_slug
+    else:
+        assert False, "Must insert taxonomy term or taxonomy slug, but you must not insert together"
+    if parent_path is not None:
+        path = [base, taxonomy_code + parent_path + "/"]
+    else:
+        path = [base, taxonomy_code + "/" + slug + "/"]
+    return "/".join(path)
+
+
+def get_taxonomy_links(taxonomy, taxonomy_term: TaxonomyTerm, parent_path: str = None):
+    self = link_self(taxonomy_code=taxonomy, taxonomy_term=taxonomy_term)
+    parent = link_self(taxonomy_code=taxonomy, taxonomy_term=taxonomy_term, parent_path=parent_path)
+    return {
+        "self": self,
+        "tree": self + "?drilldown=True",
+        "parent": parent,
+        "parent_tree": parent + "?drilldown=True"
+    }

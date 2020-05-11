@@ -256,8 +256,8 @@ def child_term_dict():
         'links': {
             'parent': 'http://localhost/api/taxonomies/root/1/',
             'parent_tree': 'http://localhost/api/taxonomies/root/1/?drilldown=True',
-            'self': 'http://localhost/api/taxonomies/root/1/3/',
-            'tree': 'http://localhost/api/taxonomies/root/1/3/?drilldown=True'
+            'self': 'http://localhost/api/taxonomies/root/3/',
+            'tree': 'http://localhost/api/taxonomies/root/3/?drilldown=True'
         },
         'path': '/1/3',
         'slug': '3',
