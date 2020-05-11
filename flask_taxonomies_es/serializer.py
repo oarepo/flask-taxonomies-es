@@ -18,8 +18,9 @@ from urllib.parse import urlparse, urlunparse
 from flask_taxonomies.models import (
     Taxonomy,
     TaxonomyTerm)
-from flask_taxonomies.proxies import current_flask_taxonomies
 from flask_taxonomies.views import format_ancestor
+
+from flask_taxonomies_es.utils import get_taxonomy_links
 
 
 def get_taxonomy_term(code=None, slug=None, timestamp=None):
@@ -53,7 +54,8 @@ def jsonify_taxonomy_term(t: TaxonomyTerm,
         "slug": t.slug,
         "taxonomy": t.taxonomy.slug,
         "path": path,
-        "links": current_flask_taxonomies.term_links(taxonomy_code, path, parent_path),
+        "links": get_taxonomy_links(taxonomy_code, taxonomy_term=t, parent_path=parent_path),
+        # TODO: vrátit zpět current_flask_taxonomies.term_links(taxonomy_code, path, parent_path)
         "level": t.level - 1
     }
 

@@ -33,6 +33,12 @@ def test_get_taxonomy_term_2(app, db, sample_term, sample_term_dict):
     assert res == sample_term_dict
 
 
+def test_get_taxonomy_term_3(app, db, child_term, child_term_dict):
+    res = get_taxonomy_term(code=child_term.taxonomy.slug, slug=child_term.slug)
+    del res["date_of_serialization"]
+    assert res == child_term_dict
+
+
 def test_jsonify_taxonomy_term(app, db, root_taxonomy, sample_term):
     with pytest.raises(Exception):
         jsonify_taxonomy_term(
