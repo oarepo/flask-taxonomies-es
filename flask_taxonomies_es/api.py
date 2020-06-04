@@ -9,6 +9,7 @@ from flask_taxonomies.models import TaxonomyTerm
 from invenio_search import current_search_client
 
 from flask_taxonomies_es.exceptions import InvalidTermIdentification
+from flask_taxonomies_es.logger import logger
 from flask_taxonomies_es.serializer import get_taxonomy_term
 from flask_taxonomies_es.utils import _get_taxonomy_slug_from_url, _get_tree_ids, bcolors
 
@@ -214,6 +215,7 @@ class TaxonomyESAPI:
                         slug=node.slug,
                         timestamp=timestamp
                     )
+                    logger.info(f"Taxonomy: {node.taxonomy.code}, Slug: {node.slug}")
                     yield {
                         '_op_type': 'index',
                         '_index': index_,
