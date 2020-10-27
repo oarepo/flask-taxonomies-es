@@ -25,7 +25,7 @@ chardet==3.0.4            # via requests
 check-manifest==0.42      # via invenio, oarepo
 click==7.1.2              # via dojson, flask, flask-shell-ipython
 coverage==5.1             # via invenio, pytest-cov
-cryptography==2.9.2       # via invenio-accounts, sqlalchemy-utils
+cryptography==3.2         # via invenio-accounts, sqlalchemy-utils
 decorator==4.4.2          # via ipython, traitlets, validators
 dnspython==1.16.0         # via email-validator
 docutils==0.16            # via sphinx
